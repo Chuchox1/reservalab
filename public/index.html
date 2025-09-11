@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Login</title>
+</head>
+<body>
+  <h2>Iniciar sesión</h2>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Correo" required><br><br>
+    <input type="password" id="password" placeholder="Contraseña" required><br><br>
+    <button type="submit">Entrar</button>
+  </form>
+  <p>¿No tienes cuenta? <a href="registro.html">Regístrate</a></p>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem("usuario", data.usuario);
+        window.location.href = "menu.html";
+      } else {
+        alert(data.error);
+      }
+    });
+  </script>
+</body>
+</html>

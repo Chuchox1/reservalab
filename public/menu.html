@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Menú Principal</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    button { margin: 5px; padding: 10px; border: none; border-radius: 5px; background: #007BFF; color: white; }
+    button:hover { background: #0056b3; }
+    .output { margin-top: 20px; background: white; padding: 15px; border-radius: 5px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Menú Principal</h2>
+  <p>Bienvenido, <span id="usuario"></span></p>
+
+  <button onclick="listarEquipos()">Listar equipos</button>
+  <button onclick="hacerReserva()">Reservar equipo</button>
+  <button onclick="listarReservas()">Mis reservas</button>
+  <button onclick="cerrarSesion()">Cerrar sesión</button>
+
+  <div id="output" class="output"></div>
+
+  <script>
+    const usuario = localStorage.getItem("usuario");
+    document.getElementById("usuario").textContent = usuario || "Invitado";
+    const output = document.getElementById("output");
+
+    if (!usuario) {
+      alert("Debes iniciar sesión primero");
+      window.location.href = "index.html";
+    }
+
+    async function listarEquipos() {
+      const res = await fetch("/equipos");
+      const data = await res.json();
+      mostrarTabla(data, ["id", "nombre", "disponible"]);
+    }
+
+    async function hacerReserva() {
+      const equipoId = prompt("Ingrese ID del equipo a reservar:");
+      const fecha = prompt("Ingrese fecha (YYYY-MM-DD):");
+      if (!equipoId || !fecha) return;
+
+      const res = await fetch("/reservar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario, equipoId, fecha })
+      });
+      const data = await res.json();
+      output.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    }
+
+    async function listarReservas() {
+      const res = await fetch("/reservas?usuario=" + usuario);
+      const data = await res.json();
+      mostrarTabla(data, ["id", "equipo", "fecha", "estado"]);
+    }
+
+    function mostrarTabla(data, columnas) {
+      if (!data.length) {
+        output.innerHTML = "<p>No hay datos para mostrar</p>";
+        return;
+      }
+      let html = "<table><tr>";
+      columnas.forEach(col => html += `<th>${col}</th>`);
+      html += "</tr>";
+      data.forEach(item => {
+        html += "<tr>";
+        columnas.forEach(col => html += `<td>${item[col]}</td>`);
+        html += "</tr>";
+      });
+      html += "</table>";
+      output.innerHTML = html;
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem("usuario");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
